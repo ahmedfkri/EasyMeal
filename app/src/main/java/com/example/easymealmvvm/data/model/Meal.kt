@@ -1,4 +1,4 @@
-package com.example.easymealmvvm.data
+package com.example.easymealmvvm.data.model
 
 data class Meal(
     val dateModified: Any,

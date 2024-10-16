@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.easymealmvvm.data.Meal
-import com.example.easymealmvvm.data.Meals
+import com.example.easymealmvvm.data.model.Meal
+import com.example.easymealmvvm.data.model.Meals
 import com.example.easymealmvvm.data.remote.RetrofitInstance
 import retrofit2.Call
 import retrofit2.Callback

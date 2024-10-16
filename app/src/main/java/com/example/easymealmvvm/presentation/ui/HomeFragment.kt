@@ -7,13 +7,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.easymealmvvm.core.Constants.MEAL_ID
 import com.example.easymealmvvm.core.Constants.MEAL_NAME
 import com.example.easymealmvvm.core.Constants.MEAL_THUMB
-import com.example.easymealmvvm.data.Meal
+import com.example.easymealmvvm.data.model.Meal
 
 import com.example.easymealmvvm.databinding.FragmentHomeBinding
+import com.example.easymealmvvm.presentation.adapter.PopularMealsAdapter
 import com.example.easymealmvvm.presentation.view_model.HomeViewModel
 
 class HomeFragment : Fragment() {
@@ -22,9 +24,12 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var randomMeal: Meal
 
+    lateinit var popularMealsAdapter: PopularMealsAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        popularMealsAdapter = PopularMealsAdapter()
 
     }
 
@@ -33,6 +38,40 @@ class HomeFragment : Fragment() {
 
         getRandomMeal()
         onRandomMealClick()
+
+        setupPopularRecyclerView()
+        getPopularMeals()
+        onPopularMealClick()
+    }
+
+    private fun onPopularMealClick() {
+        popularMealsAdapter.onItemClick ={meal ->
+            Intent(activity, MealActivity::class.java).also {
+                it.putExtra(MEAL_ID, meal.idMeal)
+                it.putExtra(MEAL_NAME, meal.strMeal)
+                it.putExtra(MEAL_THUMB, meal.strMealThumb)
+                startActivity(it)
+            }
+
+
+        }
+    }
+
+    private fun setupPopularRecyclerView() {
+        binding.rvOverPopular.apply {
+            adapter = popularMealsAdapter
+            layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+
+        }
+    }
+
+    private fun getPopularMeals() {
+        homeViewModel.getPopularMeals()
+        homeViewModel.popularMealsLiveData.observe(viewLifecycleOwner) { mealList ->
+            popularMealsAdapter.setMealList(mealList)
+            popularMealsAdapter.notifyDataSetChanged()
+
+        }
     }
 
     private fun onRandomMealClick() {
