@@ -7,14 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.easymealmvvm.core.Constants.CATEGORY_NAME
 import com.example.easymealmvvm.core.Constants.MEAL_ID
 import com.example.easymealmvvm.core.Constants.MEAL_NAME
 import com.example.easymealmvvm.core.Constants.MEAL_THUMB
 import com.example.easymealmvvm.data.model.Meal
 
 import com.example.easymealmvvm.databinding.FragmentHomeBinding
+import com.example.easymealmvvm.presentation.adapter.CategoriesAdapter
 import com.example.easymealmvvm.presentation.adapter.PopularMealsAdapter
 import com.example.easymealmvvm.presentation.view_model.HomeViewModel
 
@@ -24,13 +27,23 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var randomMeal: Meal
 
-    lateinit var popularMealsAdapter: PopularMealsAdapter
+    private lateinit var popularMealsAdapter: PopularMealsAdapter
+    private lateinit var categoriesAdapter: CategoriesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
         popularMealsAdapter = PopularMealsAdapter()
+        categoriesAdapter = CategoriesAdapter()
 
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -42,10 +55,39 @@ class HomeFragment : Fragment() {
         setupPopularRecyclerView()
         getPopularMeals()
         onPopularMealClick()
+
+        setUpCategoryRecyclerView()
+        getCategories()
+        onCategoryClick()
+    }
+
+    private fun onCategoryClick() {
+        categoriesAdapter.onItemClick = { cat->
+            Intent(activity, CategoriesActivity::class.java).also {
+                it.putExtra(CATEGORY_NAME, cat.strCategory)
+                startActivity(it)
+            }
+
+        }
+    }
+
+    private fun getCategories() {
+        homeViewModel.getCategories()
+        homeViewModel.categoriesLiveData.observe(viewLifecycleOwner) { categories ->
+            categoriesAdapter.setCategoryList(categories)
+            categoriesAdapter.notifyDataSetChanged()
+        }
+
+    }
+
+    private fun setUpCategoryRecyclerView() {
+        binding.rvCategory.adapter = categoriesAdapter
+        binding.rvCategory.layoutManager =
+            GridLayoutManager(context, 3, GridLayoutManager.VERTICAL, false)
     }
 
     private fun onPopularMealClick() {
-        popularMealsAdapter.onItemClick ={meal ->
+        popularMealsAdapter.onItemClick = { meal ->
             Intent(activity, MealActivity::class.java).also {
                 it.putExtra(MEAL_ID, meal.idMeal)
                 it.putExtra(MEAL_NAME, meal.strMeal)
@@ -91,16 +133,10 @@ class HomeFragment : Fragment() {
         homeViewModel.randomMealLiveData.observe(viewLifecycleOwner) { meal ->
             Glide.with(this@HomeFragment)
                 .load(meal.strMealThumb).into(binding.imgRandomMeal)
-            randomMeal= meal
+            randomMeal = meal
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentHomeBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+
 
 }
