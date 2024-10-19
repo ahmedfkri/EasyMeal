@@ -4,14 +4,19 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.easymealmvvm.data.local.MealDatabase
 import com.example.easymealmvvm.data.model.Meal
 import com.example.easymealmvvm.data.model.Meals
 import com.example.easymealmvvm.data.remote.RetrofitInstance
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class MealViewModel : ViewModel() {
+class MealViewModel(
+    private val mealDatabase: MealDatabase
+) : ViewModel() {
 
     private var _mealDetailsLiveData = MutableLiveData<Meal>()
     val mealDetailsLiveData : LiveData<Meal> = _mealDetailsLiveData
@@ -32,5 +37,13 @@ class MealViewModel : ViewModel() {
             }
         })
     }
+
+    fun insertMeal(meal: Meal){
+        viewModelScope.launch {
+            mealDatabase.mealDAO().upsert(meal)
+            }
+        }
+
+
 
 }

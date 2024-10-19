@@ -1,5 +1,6 @@
 package com.example.easymealmvvm.presentation.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -9,21 +10,21 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.easymealmvvm.R
 import com.example.easymealmvvm.core.Constants.CATEGORY_NAME
-import com.example.easymealmvvm.databinding.ActivityCategoriesBinding
+import com.example.easymealmvvm.databinding.ActivityMealByCategoryBinding
 import com.example.easymealmvvm.presentation.adapter.MealsByCategoryAdapter
-import com.example.easymealmvvm.presentation.view_model.CategoriesViewModel
+import com.example.easymealmvvm.presentation.view_model.MealByCategory
 
-class CategoriesActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityCategoriesBinding
+class MealByCategoryActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMealByCategoryBinding
 
-    lateinit var mealByCategoryAdapter: MealsByCategoryAdapter
+    private lateinit var mealByCategoryAdapter: MealsByCategoryAdapter
 
-    lateinit var categoriesViewModel: CategoriesViewModel
+    private lateinit var mealByCategoryViewModel: MealByCategory
 
-    lateinit var catName: String
+    private lateinit var catName: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        binding = ActivityCategoriesBinding.inflate(layoutInflater)
+        binding = ActivityMealByCategoryBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(binding.root)
@@ -32,28 +33,29 @@ class CategoriesActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        categoriesViewModel = ViewModelProvider(this)[CategoriesViewModel::class.java]
+        mealByCategoryViewModel = ViewModelProvider(this)[MealByCategory::class.java]
         mealByCategoryAdapter = MealsByCategoryAdapter()
 
         getInformationFromIntent()
         getMealsByCategory()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun getMealsByCategory() {
-        categoriesViewModel.getMealsByCategory(catName)
+        mealByCategoryViewModel.getMealsByCategory(catName)
         lifecycleScope.launchWhenCreated {
-            categoriesViewModel.mealByCategoryLiveData.observe(this@CategoriesActivity) { mealsList ->
-                mealByCategoryAdapter.setMealList(mealsList)
+            mealByCategoryViewModel.mealByCategoryLiveData.observe(this@MealByCategoryActivity) { mealsList ->
+                mealByCategoryAdapter.differ.submitList(mealsList)
                 binding.rvCategoryItems.adapter = mealByCategoryAdapter
+                binding.txtCatCount.text = "${catName} : " +mealByCategoryAdapter.itemCount.toString()
             }
         }
+
     }
 
 
     private fun getInformationFromIntent() {
         val intent = intent
         catName = intent.getStringExtra(CATEGORY_NAME).toString()
-        binding.txtCatCount.text = "$catName : Count"
-
     }
 }

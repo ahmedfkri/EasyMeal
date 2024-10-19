@@ -16,7 +16,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".presentation.ui.CategoriesActivity"
+            android:name=".presentation.ui.MealByCategoryActivity"
             android:exported="false" />
         <activity
             android:name=".presentation.ui.MealActivity"

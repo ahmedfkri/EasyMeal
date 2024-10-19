@@ -2,6 +2,8 @@ package com.example.easymealmvvm.presentation.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.easymealmvvm.data.model.Category
@@ -10,14 +12,20 @@ import com.example.easymealmvvm.databinding.CategoryListItemBinding
 
 class CategoriesAdapter : RecyclerView.Adapter<CategoriesAdapter.CategoryViewHolder>() {
 
-    private var categoriesList = ArrayList<Category>()
-
     var onItemClick: ((Category) -> Unit)? = null
 
-    fun setCategoryList(categoryList: List<Category>) {
-        this.categoriesList = categoryList as ArrayList<Category>
-        notifyDataSetChanged()
+
+    //DiffUtil
+    val diffUtil = object : DiffUtil.ItemCallback<Category>() {
+        override fun areItemsTheSame(oldItem: Category, newItem: Category): Boolean {
+            return oldItem.idCategory == newItem.idCategory
+        }
+
+        override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean {
+            return oldItem == newItem
+        }
     }
+    val differ = AsyncListDiffer(this, diffUtil)
 
     class CategoryViewHolder(val binding: CategoryListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -33,10 +41,10 @@ class CategoriesAdapter : RecyclerView.Adapter<CategoriesAdapter.CategoryViewHol
         )
     }
 
-    override fun getItemCount() = categoriesList.size
+    override fun getItemCount() = differ.currentList.size
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        val category = categoriesList[position]
+        val category = differ.currentList[position]
         holder.binding.txtCategoryName.text = category.strCategory
         Glide.with(holder.itemView).load(category.strCategoryThumb)
             .into(holder.binding.imgCategory)

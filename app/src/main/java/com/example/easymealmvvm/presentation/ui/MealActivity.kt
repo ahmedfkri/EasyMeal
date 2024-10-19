@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -14,8 +15,11 @@ import com.example.easymealmvvm.R
 import com.example.easymealmvvm.core.Constants.MEAL_ID
 import com.example.easymealmvvm.core.Constants.MEAL_NAME
 import com.example.easymealmvvm.core.Constants.MEAL_THUMB
+import com.example.easymealmvvm.data.local.MealDatabase
+import com.example.easymealmvvm.data.model.Meal
 import com.example.easymealmvvm.databinding.ActivityMealBinding
 import com.example.easymealmvvm.presentation.view_model.MealViewModel
+import com.example.easymealmvvm.presentation.view_model.MealViewModelFactory
 
 class MealActivity : AppCompatActivity() {
 
@@ -26,13 +30,19 @@ class MealActivity : AppCompatActivity() {
     private lateinit var mealYouTubeLink: String
     private lateinit var viewModel: MealViewModel
 
+    lateinit var meal: Meal
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityMealBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[MealViewModel::class.java]
         enableEdgeToEdge()
         setContentView(binding.root)
+
+        val db = MealDatabase.getInstance(this)
+        val viewModelFactory = MealViewModelFactory(db)
+        viewModel = ViewModelProvider(this, viewModelFactory)[MealViewModel::class.java]
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -44,8 +54,19 @@ class MealActivity : AppCompatActivity() {
         loadingCase()
         viewModel.getMealDetails(mealId)
         observeMealDetailsLiveData()
+
+        onFavoriteClick()
         onYoutubeClick()
 
+    }
+
+    private fun onFavoriteClick() {
+        binding.fabFav.setOnClickListener {
+            meal.let {
+                viewModel.insertMeal(it)
+                Toast.makeText(this, "Inserted ${it.strMeal}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun onYoutubeClick() {
@@ -59,12 +80,12 @@ class MealActivity : AppCompatActivity() {
         viewModel.mealDetailsLiveData.observe(this
         ) { value ->
             onResponseCase()
-            val meal = value
+            meal = value
             binding.txtContent.text = meal.strInstructions
             binding.txtCat.text = "Category : ${meal.strCategory}"
             binding.txtArea.text = "Area : ${meal.strArea}"
 
-            mealYouTubeLink= meal.strYoutube
+            mealYouTubeLink= meal.strYoutube!!
         }
     }
 
