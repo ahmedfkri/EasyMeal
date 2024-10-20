@@ -2,6 +2,8 @@ package com.example.easymealmvvm.presentation.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.easymealmvvm.data.model.PopularMeal
@@ -10,13 +12,23 @@ import com.example.easymealmvvm.databinding.PopularItemBinding
 class PopularMealsAdapter : RecyclerView.Adapter<PopularMealsAdapter.PopularMealViewHolder>() {
 
     lateinit var onItemClick: ((PopularMeal) -> Unit)
+    var onLongItemClick: ((PopularMeal) -> Unit)? = null
 
-    private var mealsList = ArrayList<PopularMeal>()
 
-    fun setMealList(mealList: List<PopularMeal>) {
-        this.mealsList = mealList as ArrayList<PopularMeal>
-        notifyDataSetChanged()
+    //DiffUtil
+    private val diffUtil = object :DiffUtil.ItemCallback<PopularMeal>(){
+        override fun areItemsTheSame(oldItem: PopularMeal, newItem: PopularMeal): Boolean {
+
+            return newItem.idMeal == oldItem.idMeal
+        }
+
+        override fun areContentsTheSame(oldItem: PopularMeal, newItem: PopularMeal): Boolean {
+            return newItem == oldItem
+        }
+
     }
+    val differ = AsyncListDiffer(this,diffUtil)
+
 
     class PopularMealViewHolder(val binding: PopularItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -41,13 +53,18 @@ class PopularMealsAdapter : RecyclerView.Adapter<PopularMealsAdapter.PopularMeal
         position: Int
     ) {
         Glide.with(holder.itemView)
-            .load(mealsList[position].strMealThumb).into(holder.binding.imgFavMeal)
+            .load(differ.currentList[position].strMealThumb).into(holder.binding.imgFavMeal)
 
         holder.itemView.setOnClickListener {
-            onItemClick.invoke(mealsList[position])
+            onItemClick.invoke(differ.currentList[position])
+        }
+
+        holder.itemView.setOnLongClickListener {
+            onLongItemClick?.invoke(differ.currentList[position])
+            true
         }
     }
 
-    override fun getItemCount() = mealsList.size
+    override fun getItemCount() = differ.currentList.size
 
 }

@@ -6,9 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.easymealmvvm.R
 import com.example.easymealmvvm.core.Constants.CATEGORY_NAME
 import com.example.easymealmvvm.core.Constants.MEAL_ID
 import com.example.easymealmvvm.core.Constants.MEAL_NAME
@@ -18,6 +20,7 @@ import com.example.easymealmvvm.data.model.Meal
 import com.example.easymealmvvm.databinding.FragmentHomeBinding
 import com.example.easymealmvvm.presentation.adapter.CategoriesAdapter
 import com.example.easymealmvvm.presentation.adapter.PopularMealsAdapter
+import com.example.easymealmvvm.presentation.bottomsheet.MealBottomSheetFragment
 import com.example.easymealmvvm.presentation.view_model.MainViewModel
 
 class HomeFragment : Fragment() {
@@ -54,14 +57,33 @@ class HomeFragment : Fragment() {
         setupPopularRecyclerView()
         getPopularMeals()
         onPopularMealClick()
+        onPopularMealLongClick()
+
 
         setUpCategoryRecyclerView()
         getCategories()
         onCategoryClick()
+
+        onSearchClick()
+
+    }
+
+    private fun onSearchClick() {
+        binding.imgSearch.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_searchFragment)
+        }
+    }
+
+    private fun onPopularMealLongClick() {
+        popularMealsAdapter.onLongItemClick = {
+            val bottomSheetFragment = MealBottomSheetFragment.newInstance(it.idMeal)
+
+            bottomSheetFragment.show(childFragmentManager, "Meal Info")
+        }
     }
 
     private fun onCategoryClick() {
-        categoriesAdapter.onItemClick = { cat->
+        categoriesAdapter.onItemClick = { cat ->
             Intent(activity, MealByCategoryActivity::class.java).also {
                 it.putExtra(CATEGORY_NAME, cat.strCategory)
                 startActivity(it)
@@ -108,8 +130,7 @@ class HomeFragment : Fragment() {
     private fun getPopularMeals() {
         mainViewModel.getPopularMeals()
         mainViewModel.popularMealsLiveData.observe(viewLifecycleOwner) { mealList ->
-            popularMealsAdapter.setMealList(mealList)
-            popularMealsAdapter.notifyDataSetChanged()
+            popularMealsAdapter.differ.submitList(mealList)
 
         }
     }
@@ -134,7 +155,6 @@ class HomeFragment : Fragment() {
             randomMeal = meal
         }
     }
-
 
 
 }

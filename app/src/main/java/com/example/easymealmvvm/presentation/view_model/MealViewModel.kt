@@ -22,7 +22,7 @@ class MealViewModel(
     val mealDetailsLiveData : LiveData<Meal> = _mealDetailsLiveData
 
     fun getMealDetails(id: String){
-        RetrofitInstance.api.getMEalDetails(id).enqueue(object : Callback<Meals> {
+        RetrofitInstance.api.getMealDetails(id).enqueue(object : Callback<Meals> {
             override fun onResponse(call: Call<Meals>, response: Response<Meals>) {
                 if(response.body() != null){
                     val randomMeal: Meal = response.body()!!.meals[0]
